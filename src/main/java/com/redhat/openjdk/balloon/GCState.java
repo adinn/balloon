@@ -60,10 +60,10 @@ abstract class GCState
                 } else if (beanName.equals("G1 Young Generation") || beanName.equals("G1 Old Generation")) {
                     // theGCState = new G1State();
                     System.out.printf("GCState : cannot run with G1 GC!\n");
-                    System.exit(1);
+                    break;
                 } else if (beanName.equals("ParNew") || beanName.equals("ConcurrentMarkSweep")) {
                     System.out.printf("GCState : cannot run with CMS GC!\n");
-                    System.exit(1);
+                    break;
                 }
             }
         }

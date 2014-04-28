@@ -33,6 +33,9 @@ import java.util.Date;
  * A class responsible for monitoring and managing heap memory usage
  * including creating and deleting balloon in response to low or
  * high pressure on available heap memory.
+ *
+ * n.b. the current implementation merely monitors memory. it does
+ * not attempt to infltae/deflate balloons.
  */
 public class MemoryManager
 {
@@ -70,6 +73,9 @@ public class MemoryManager
 
         // identify the current GC and heap state
         cacheState();
+        if (gcState == null) {
+            return false;
+        }
         // set up the sample defaults
         for (int i = 0; i < RUNNING_SAMPLE_COUNT; i++) {
             live_running[i] = 0;
