@@ -241,14 +241,14 @@ public class MemoryManager
             out.printf("gc secs:      %9.4f\n", 1.0D * gcmsecs/1000.0D);
             out.printf("  live:         %9d               ", live);
             out.printf("committed:    %9d\n", committed);
-            out.printf("  commit hi:    %9d (%7.4f%%)    ", (long)tenured_committed_hi, tenured_committed_hi_pct);
-            out.printf("commit lo:    %9d (%7.4f%%)\n", (long)tenured_committed_lo, tenured_committed_lo_pct);
-            out.printf("  commit avg:   %9d (%7.4f%%)    ", (long)tenured_committed_avge, tenured_committed_avge_pct);
-            out.printf("(last %2d):    %9d (%7.4f%%)\n", RUNNING_SAMPLE_COUNT, (long)tenured_committed_running_avge, tenured_committed_running_avge_pct);
             out.printf(  "  live hi:      %9d (%7.4f%%)    ", (long)tenured_live_hi, tenured_live_hi_pct);
             out.printf("live lo:      %9d (%7.4f%%)\n", (long)tenured_live_lo, tenured_live_lo_pct);
             out.printf("  live avg:     %9d (%7.4f%%)    ", (long)tenured_live_avge, tenured_live_avge_pct);
             out.printf("(last %2d):    %9d (%7.4f%%)\n", RUNNING_SAMPLE_COUNT, (long)tenured_live_running_avge, tenured_live_running_avge_pct);
+            out.printf("  commit hi:    %9d (%7.4f%%)    ", (long)tenured_committed_hi, tenured_committed_hi_pct);
+            out.printf("commit lo:    %9d (%7.4f%%)\n", (long)tenured_committed_lo, tenured_committed_lo_pct);
+            out.printf("  commit avg:   %9d (%7.4f%%)    ", (long)tenured_committed_avge, tenured_committed_avge_pct);
+            out.printf("(last %2d):    %9d (%7.4f%%)\n", RUNNING_SAMPLE_COUNT, (long)tenured_committed_running_avge, tenured_committed_running_avge_pct);
             out.println();
 
             timestamp = end;
