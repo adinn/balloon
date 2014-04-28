@@ -230,6 +230,7 @@ agentThread(jvmtiEnv* jvmti, JNIEnv* jni, void *p)
     while (event == GCEvent::End && !gcNotifyQueue.empty()) {
       skipped += inited; // only count misses after init has happened
       GCEvent event = gcNotifyQueue.front();
+      stdout_message("GC worker pop...\n");
       gcNotifyQueue.pop();
     }
     exitAgentMonitor(jvmti);
@@ -547,6 +548,8 @@ endGC(jvmtiEnv *jvmti) {
     notifyAgentMonitor(jvmti);
     exitAgentMonitor(jvmti);
     stdout_message("Notified GC monitor thread : end\n");
+  } else {
+    exitAgentMonitor(jvmti);
   }
   stdout_message("agent::endGC done\n");  
 }
@@ -657,7 +660,7 @@ Agent_OnLoad(JavaVM *vm, char *options, void *reserved) {
  */
 JNIEXPORT void JNICALL
 Agent_OnUnload(JavaVM *vm) {
-  stdout_message("Agent_OnUnload(jvm=%p)\n", jvm);
+  stdout_message("Agent_OnUnload(jvm=%p, agentJvmti=%p)\n", jvm, agentJvmti);
   enterAgentMonitor(agentJvmti);
   gcNotifyQueue.push(GCEvent::Terminate);
   notifyAgentMonitor(agentJvmti);
