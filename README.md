@@ -14,21 +14,21 @@ dump.
 
 Stats listed at each dump ar eas follows
 
-GC Type (Old/Young) and timestamp
-  last young GC count
-  last young GC elapsed time
-    last young GC eden before/after sizes in KBs size/committed(max)
-    last young GC tenured before/after sizes in KBs size/committed(max)
-  last old GC count
-  last old GC elapsed time
-    last old GC eden before/after sizes in KBs size/committed(max)
-    last old GC tenured before/after sizes in KBs size/committed(max)
-  total mutator secs                  total gc secs
-  tenured live size KBs               tenured committed size KBs
-  live hi water KBs (% of max)        live lo water KBs (% of max)
-  live avge KBs (% of max)            live last 10 avge KBs (% of max)
-  committed hi water KBs (% of max)   committed lo water KBs (% of max)
-  committed avge KBs (% of max)       committed last 10 avge KBs (% of max)
+    GC Type (Old/Young) and timestamp
+      last young GC count
+      last young GC elapsed time
+        last young GC eden before/after sizes in KBs size/committed(max)
+        last young GC tenured before/after sizes in KBs size/committed(max)
+      last old GC count
+      last old GC elapsed time
+        last old GC eden before/after sizes in KBs size/committed(max)
+        last old GC tenured before/after sizes in KBs size/committed(max)
+      total mutator secs                  total gc secs
+      tenured live size KBs               tenured committed size KBs
+      live hi water KBs (% of max)        live lo water KBs (% of max)
+      live avge KBs (% of max)            live last 10 avge KBs (% of max)
+      committed hi water KBs (% of max)   committed lo water KBs (% of max)
+      committed avge KBs (% of max)       committed last 10 avge KBs (% of max)
 
 
 This is a combined C++/Java application for use with OpenJDK and
@@ -43,41 +43,41 @@ Building
 To build the agent you will need make, gcc and mvn installed in your
 runtime. In the top-level dir of the source tree execute:
 
-  make dist
+    make dist
 
 to build the deployable build products. They will be installed in a
 subdir called target
 
-  target/libballoon.so
-  target/balloondriver-1.0.0.jar
+    target/libballoon.so
+    target/balloondriver-1.0.0.jar
 
 To delete the target tree execute
 
-  make clean
+    make clean
 
 To build a version of the jar which includes a Test class which can be
 used to churn over memory execute
 
-  make clean
-  make all
+    make clean
+    make all
 
 Using
 -----
 
 To use the agent pass the following arguments on the java command line
 
-  $ java -agentpath:${BASEDIR}/target/libballoon.so \
-         -cp ${BASEDIR}/target/balloon-1.0.0.jar \
-         . . .
+    $ java -agentpath:${BASEDIR}/target/libballoon.so \
+           -cp ${BASEDIR}/target/balloon-1.0.0.jar \
+           . . .
 
 where BASEDIR identifies your git tree root. Alternatively, you can
 add the target dir to the library load path and use the agentlib
 argument
 
-  $ LD_LIBRARY_PATH=${BASEDIR}/target
-  $ java -agentlib:balloon \
-         -cp ${BASEDIR}/target/balloon-1.0.0.jar \
-         . . .
+    $ LD_LIBRARY_PATH=${BASEDIR}/target
+    $ java -agentlib:balloon \
+           -cp ${BASEDIR}/target/balloon-1.0.0.jar \
+           . . .
 
 The agent will write memory management summary stats to file
 .balloonstats.log in the current working directory.
@@ -89,22 +89,22 @@ The agent accepts several options which can be appended to the shared
 library name following an '=' separator.multiple options must be comma
 separated. So, for example you can pass
 
-  $ java -agentpath:${BASEDIR}/target/libballoon.so=sysout \
-         -cp ${BASEDIR}/target/balloon-1.0.0.jar \
-         . . .
+    $ java -agentpath:${BASEDIR}/target/libballoon.so=sysout \
+           -cp ${BASEDIR}/target/balloon-1.0.0.jar \
+           . . .
 
 or
 
-  $ java -agentpath:${BASEDIR}/target/libballoon.so=verbose,all \
-         -cp ${BASEDIR}/target/balloon-1.0.0.jar \
-         . . .
+    $ java -agentpath:${BASEDIR}/target/libballoon.so=verbose,all \
+           -cp ${BASEDIR}/target/balloon-1.0.0.jar \
+           . . .
 
 Available options and their meanings are
 
-  sysout -- write stats to the JVM's System.out
-  verbose -- print messages detailing operation of the native agent
-  all -- dump stats at every GC
-  map -- does not yet do anything
+    sysout -- write stats to the JVM's System.out
+    verbose -- print messages detailing operation of the native agent
+    all -- dump stats at every GC
+    map -- does not yet do anything
 
 
 Testing
@@ -124,12 +124,12 @@ normal size, with a probability of about 1 in 10000.
 If you build with target all then Test.class will be located in the
 ballon driver jar and the application can be executed as follows
 
-java -agentpath:target/libballoon.so Test 4 1000
+    java -agentpath:target/libballoon.so Test 4 1000
 
-  The first argument (default 1, must be >= 1) is a (approximate)
+The first argument (default 1, must be >= 1) is a (approximate)
 multiplier for the retained working set size.
 
-  The second argument (default 100, must be >= 0) specifies the number
+The second argument (default 100, must be >= 0) specifies the number
 of nanoseconds of work to be performed between calls to new.
 
 Balloon?
