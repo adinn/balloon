@@ -63,6 +63,14 @@ static int do_balloon_mapping = 0;
 // going to the default log file (${CWD}/.balloonstats.log)
 static jvalue use_sysout = { 0 };
 
+// flag which requests dumping stats at every GC if set to true otherwise
+// stats are dumped at old gc so long as a minimum of DUMP_INTERVAL_MIN
+// seconds has passed since the last old gc dumps or at young GC if there
+// has not been a prior (old or young gc) dump during the last
+// DUMP_INTERVAL_MAX seconds
+
+static jvalue dump_all = { 0 };
+
 // lock used to sequence concurrent actions performed
 // by JVMTI callbacks and the agent manager jthread
 static jrawMonitorID agent_lock;
@@ -227,7 +235,7 @@ agentThread(jvmtiEnv* jvmti, JNIEnv* jni, void *p)
     exitAgentMonitor(jvmti);
     if(event == GCEvent::Init) {
       stdout_message("Calling MemoryManager.init\n");
-      inited = jni->CallStaticBooleanMethod(theMemoryManager.MemoryManagerClass, theMemoryManager.init, use_sysout);
+      inited = jni->CallStaticBooleanMethod(theMemoryManager.MemoryManagerClass, theMemoryManager.init, use_sysout, dump_all);
       failed = !inited;
     } else if (event == GCEvent::End  && inited) {
       interrupted = JNI_FALSE;
@@ -441,7 +449,7 @@ static void JNICALL vmInit(jvmtiEnv *jvmti, JNIEnv* jni, jthread thread) {
     jvm->DestroyJavaVM();
   }
   stdout_message("Loaded MemoryManagerClass: %p\n", theMemoryManager.MemoryManagerClass);
-  theMemoryManager.init = jni->GetStaticMethodID(theMemoryManager.MemoryManagerClass, "init", "(Z)Z");
+  theMemoryManager.init = jni->GetStaticMethodID(theMemoryManager.MemoryManagerClass, "init", "(ZZ)Z");
   stdout_message("Loaded init: %p\n", theMemoryManager.init);
   theMemoryManager.gcEnd = jni->GetStaticMethodID(theMemoryManager.MemoryManagerClass, "gcEnd", "()V");
   stdout_message("Loaded gcEnd: %p\n", theMemoryManager.gcEnd);
@@ -566,6 +574,8 @@ void processAgentOptions(char *options)
       set_verbose();
     } else if (strncmp(curr, "sysout", len) == 0) {
       use_sysout.z = 1;
+    } else if (strncmp(curr, "all", len) == 0) {
+      dump_all.z = 1;
     } else {
       printf("unknown agent option <%*s>\n", len, curr);
     }

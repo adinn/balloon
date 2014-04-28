@@ -53,8 +53,9 @@ public class MemoryManager
      * the GC in use and initalize the various monitoring statistics
      * which will be gathered as the application executes
      */
-    private final static boolean init(boolean useSysOut)
+    private final static boolean init(boolean useSysOut, boolean dumpAll)
     {
+        MemoryManager.dumpAll = dumpAll;
         if (useSysOut) {
             out = System.out;
         } else {
@@ -92,16 +93,38 @@ public class MemoryManager
         long mutatorPlus;
         long totalPlus;
         boolean isFirstGC = (lastHeapState == null);
+        boolean isYoungGC = (!isFirstGC && (currentHeapState.youngCount > lastHeapState.youngCount));
         boolean isOldGC = (!isFirstGC && (currentHeapState.oldCount > lastHeapState.oldCount));
-        boolean skippedYoungGCs = (!isFirstGC && (currentHeapState.youngCount - lastHeapState.youngCount > 1));
+        boolean skippedYoungGCs = (!isFirstGC && (currentHeapState.youngCount > lastHeapState.youngCount + 1));
         long live = 0;
         long committed = 0;
+        long max = 0;
+        double commPct;
+        double livePct;
 
         if (isFirstGC) {
             // count time up to the last young GC as mutator time
             gcPlus = currentHeapState.youngElapsed();
             totalPlus = end;
             mutatorPlus = totalPlus - gcPlus;
+                // use initial committed to seed running average
+            max = currentHeapState.oldTenuredAfterMax / 1024;
+            committed =  currentHeapState.oldTenuredAfterCommitted / 1024;
+            live = currentHeapState.oldTenuredAfterSize / 1024;
+            commPct = 100D * committed / max;
+            livePct = 100D * live / max;
+            tenured_committed_lo = committed;
+            tenured_committed_avge = committed;
+            tenured_committed_hi = committed;
+            tenured_live_lo = live;
+            tenured_live_avge = live;
+            tenured_live_hi = live;
+            tenured_committed_lo_pct = commPct;
+            tenured_committed_avge_pct = commPct;
+            tenured_committed_hi_pct = commPct;
+            tenured_live_lo_pct = livePct;
+            tenured_live_avge_pct = livePct;
+            tenured_live_hi_pct = livePct;
         } else {
             lastEnd = lastHeapState.end();
             // use the latest end time to mark the time interval between last and current
@@ -118,61 +141,49 @@ public class MemoryManager
             }
             totalPlus = end - lastEnd;
             mutatorPlus =  totalPlus - gcPlus;
-        }
-        if (isOldGC) {
             // check the low and high water marks for tenured space
-            long max = currentHeapState.oldTenuredAfterMax / 1024;
-            committed =  currentHeapState.oldTenuredAfterCommitted / 1024;
-            live = currentHeapState.oldTenuredAfterSize / 1024;
-            double commPct = 100D * committed / max;
-            double livePct = 100D * live / max;
-            if (lastOldHeapState == null) {
-                // use initial committed to seed running average
-                tenured_committed_lo = committed;
-                tenured_committed_avge = committed;
-                tenured_committed_hi = committed;
-                tenured_live_lo = live;
-                tenured_live_avge = live;
-                tenured_live_hi = live;
-                tenured_committed_lo_pct = commPct;
-                tenured_committed_avge_pct = commPct;
-                tenured_committed_hi_pct = commPct;
-                tenured_live_lo_pct = livePct;
-                tenured_live_avge_pct = livePct;
-                tenured_live_hi_pct = livePct;
+            if (isOldGC) {
+                max = currentHeapState.oldTenuredAfterMax / 1024;
+                committed =  currentHeapState.oldTenuredAfterCommitted / 1024;
+                live = currentHeapState.oldTenuredAfterSize / 1024;
             } else {
-                // update the committed average and lo water mark using the old tenured sizes after the GC
-                if (committed < tenured_committed_lo) {
-                    tenured_committed_lo = committed;
-                    tenured_committed_lo_pct = commPct;
-                }
-                if (live < tenured_live_lo) {
-                    tenured_live_lo = live;
-                    tenured_live_lo_pct = livePct;
-                }
-                if (live > tenured_live_hi) {
-                    tenured_live_hi = live;
-                    tenured_live_hi_pct = livePct;
-                }
-                lastEnd = lastOldHeapState.end();
-                tenured_committed_avge = ((tenured_committed_avge * lastEnd) + (committed * (end - lastEnd))) / end;
-                tenured_committed_avge_pct = (100D * tenured_committed_avge / max);
-                // update the live average and lo/hi water mark using the old tenured size after the GC
-                tenured_live_avge = ((tenured_live_avge * lastEnd) + (live * (end - lastEnd))) / end;
-                tenured_live_avge_pct = (100D * tenured_live_avge / max);
-                // update the committed hi water mark using the maximum of the current tenured
-                // committed size and the tenured committed size before GC
-                long beforeCommitted = currentHeapState.oldTenuredBeforeCommitted / 1024;
-                if (committed > beforeCommitted) {
-                    beforeCommitted = committed;
-                }
-                if (beforeCommitted > tenured_committed_hi) {
-                    tenured_committed_hi = beforeCommitted;
-                    commPct = 100D * beforeCommitted / max;
-                    tenured_committed_hi_pct = commPct;
-                }
+                max = currentHeapState.youngTenuredAfterMax / 1024;
+                committed= currentHeapState.youngTenuredAfterCommitted / 1024;
+                live = currentHeapState.youngTenuredAfterSize / 1024;
             }
+
+            commPct = 100D * committed / max;
+            livePct = 100D * live / max;
+            // update the committed average and lo water mark using the old tenured sizes after the GC
+            if (committed > tenured_committed_hi) {
+                tenured_committed_hi = committed;
+                tenured_committed_hi_pct = commPct;
+
+            }
+            if (committed < tenured_committed_lo) {
+                tenured_committed_lo = committed;
+                tenured_committed_lo_pct = commPct;
+            }
+            if (live < tenured_live_lo) {
+                tenured_live_lo = live;
+                tenured_live_lo_pct = livePct;
+            }
+            if (live > tenured_live_hi) {
+                tenured_live_hi = live;
+                tenured_live_hi_pct = livePct;
+            }
+            // now update the averages
+            lastEnd = lastHeapState.end();
+            tenured_committed_avge = ((tenured_committed_avge * lastEnd) + (committed * (end - lastEnd))) / end;
+            tenured_committed_avge_pct = (100D * tenured_committed_avge / max);
+            // update the live average and lo/hi water mark using the old tenured size after the GC
+            tenured_live_avge = ((tenured_live_avge * lastEnd) + (live * (end - lastEnd))) / end;
+            tenured_live_avge_pct = (100D * tenured_live_avge / max);
+
             // running totals just average the last RUNNING_SAMPLE_COUNT values
+            // start with the current committed and live values and current end time and
+            // fold in the last RUNNING_SAMPLE_COUNT - 1 values to computer the average
+            // then put the current values into the sample set
             long current_time = end;
             long current_committed = committed;
             long current_live = live;
@@ -204,11 +215,10 @@ public class MemoryManager
             committed_running[sample_idx] = committed;
             time_running[sample_idx] = end;
 
-            lastOldHeapState = currentHeapState;
-        } else {
-            committed= currentHeapState.youngTenuredAfterCommitted;
-            live = currentHeapState.youngTenuredAfterSize;
+            lastHeapState = currentHeapState;
         }
+        // ok, we can update the time counters now we don't need the old values
+
         mutatormsecs += mutatorPlus;
         gcmsecs += gcPlus;
         totalmsecs += totalPlus;
@@ -218,10 +228,7 @@ public class MemoryManager
         // always dump at first GC
         // dump old GC if last dump was young GC or if last dump was oldGC and was over DUMP_INTERVAL_MIN in the past
         // dump young GC if last dump was over DUMP_INTERVAL_MAX in the past
-        if (isFirstGC || (isOldGC && (!dumpedOld || dump_delta > DUMP_INTERVAL_MIN)) || dump_delta > DUMP_INTERVAL_MAX) {
-            if (skippedYoungGCs) {
-                // System.out.printf("skipped young gc count from %d to %d\n", lastHeapState.youngCount, currentHeapState.youngCount);
-            }
+        if (dumpAll || isFirstGC || (isOldGC && (!dumpedOld || dump_delta > DUMP_INTERVAL_MIN)) || dump_delta > DUMP_INTERVAL_MAX) {
             out.printf("%s timestamp: %9.4f\n", (isOldGC ? "Old: " : "Young: "), totalmsecs/1000.0D);
             currentHeapState.dump(out);
             out.printf("  mutator secs: %9.4f               ", 1.0D * mutatormsecs/1000.0D);
@@ -253,10 +260,15 @@ public class MemoryManager
     }
 
     /**
-     * output stream to the ballon stats log file
+     * output stream to the ballon stats log file or Syste.out if useSysout was passed as true
      */
     private static PrintStream out = null;
 
+    /**
+     *  flag passed in by agent as true if data should be dumped at every GC or
+     *  at infrequent intervals
+     */
+    private static boolean dumpAll;
     /**
      * accessor for the GC satistics
      */
@@ -269,10 +281,6 @@ public class MemoryManager
      * heap stats for the previous most recently recorded GC
      */
     private static HeapState lastHeapState = null;
-    /**
-     * heap stats for the previous most recently recorded old GC
-     */
-    private static HeapState lastOldHeapState = null;
 
     /**
      * the total time spent in GC in millisecs
@@ -360,7 +368,7 @@ public class MemoryManager
     /**
      *  number of samples used to keep a running average of the committed and live sizes
      */
-    private final static int RUNNING_SAMPLE_COUNT = 3;
+    private final static int RUNNING_SAMPLE_COUNT = 10;
 
     /**
      *  the last N values for committed
@@ -394,6 +402,8 @@ public class MemoryManager
      *
      * i.e. if old GCs come thick and fast we wll wait at least 20 seconds
      * before dumping details of the next old GC
+     *
+     * n.b. only respected if dumpAll is false
      */
     private static long DUMP_INTERVAL_MIN = 20 * 1000;
     /**
@@ -401,6 +411,8 @@ public class MemoryManager
      *
      * i.e. if old GCs are thin in the ground we will dump details of the next
      * young GC if we have not seen an old GC for 2 minutes
+     *
+     * n.b. only respected if dumpAll is false
      */
     private static long DUMP_INTERVAL_MAX = 120 * 1000;
 
