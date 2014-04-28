@@ -45,7 +45,7 @@ $(TARGETDIR):
 	mkdir $(TARGETDIR)
 
 $(TARGETDIR)/libballoon.so: $(TARGETDIR)/balloonagent.o $(TARGETDIR)/balloonutil.o
-	$(LD) $(LDFLAGS) -o $@ $?
+	$(LD) $(LDFLAGS) -o $@ $^
 
 
 $(TARGETDIR)/%.o: $(SRCDIR)/%.cpp
