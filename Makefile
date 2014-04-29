@@ -2,11 +2,11 @@ JAVA_INCLUDES=-I/usr/lib/jvm/java/include/linux -I/usr/lib/jvm/java/include
 
 INCLUDES=${JAVA_INCLUDES} -I.
 
-CXXFLAGS=-DASSERT -DDEBUG ${INCLUDES} -m64 -std=c++0x -DLinux -c -g -fPIC
+CXXFLAGS=-DASSERT -DDEBUG ${INCLUDES} -std=c++0x -DLinux -c -g -fPIC
 
-CPPFLAGS=-DASSERT -DDEBUG ${INCLUDES} -m64 -DLinux -c -g -fPIC
+CPPFLAGS=-DASSERT -DDEBUG ${INCLUDES} -DLinux -c -g -fPIC
 
-LDFLAGS=-m64 -z noexecstack -shared -Wl,-soname,libballoon.so
+LDFLAGS=-z noexecstack -shared -Wl,-soname,libballoon.so
 
 SRCDIR=src/main/native
 
