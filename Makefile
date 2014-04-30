@@ -4,7 +4,7 @@ INCLUDES=${JAVA_INCLUDES} -I.
 
 CXXFLAGS=-DASSERT -DDEBUG ${INCLUDES} -std=c++0x -DLinux -c -g -fPIC
 
-CPPFLAGS=-DASSERT -DDEBUG ${INCLUDES} -DLinux -c -g -fPIC
+CFLAGS=-DASSERT -DDEBUG ${INCLUDES} -DLinux -c -g -fPIC
 
 LDFLAGS=-z noexecstack -shared -Wl,-soname,libballoon.so
 
@@ -34,6 +34,14 @@ LD=g++
 # all produces the agent lib and a jar containing the agent Java classes and class Test
 all: $(TARGETDIR) $(TARGETDIR)/libballoon.so $(JAVA_TEST_CLASSES) $(TARGETDIR)/balloondriver-1.0.0.jar
 
+all32:: CFLAGS += -m32
+
+all32:: CXXFLAGS += -m32
+
+all32:: LDFLAGS += -m32
+
+all32: all
+
 # dist just produces the agent lib and a jar containing the agent Java classes without class Test
 
 dist: clean $(TARGETDIR) $(TARGETDIR)/libballoon.so $(TARGETDIR)/balloondriver-1.0.0.jar
@@ -52,7 +60,7 @@ $(TARGETDIR)/%.o: $(SRCDIR)/%.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $<
 
 $(TARGETDIR)/%.o: $(SRCDIR)/%.c
-	$(CC) $(CPPFLAGS) -o $@ $<
+	$(CC) $(CFLAGS) -o $@ $<
 
 $(TARGETDIR)/balloondriver-1.0.0.jar: $(JAVA_LIB_CLASSES)
 	mvn install
