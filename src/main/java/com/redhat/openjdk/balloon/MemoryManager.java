@@ -166,11 +166,11 @@ public class MemoryManager
                 tenured_committed_hi_pct = commPct;
 
             }
-            if (committed < tenured_committed_lo) {
+            if (committed < tenured_committed_lo || tenured_committed_lo == 0) {
                 tenured_committed_lo = committed;
                 tenured_committed_lo_pct = commPct;
             }
-            if (live < tenured_live_lo) {
+            if (live < tenured_live_lo || tenured_live_lo < 0) {
                 tenured_live_lo = live;
                 tenured_live_lo_pct = livePct;
             }
