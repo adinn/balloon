@@ -101,6 +101,7 @@ public class MemoryManager
         boolean isFirstGC = (lastHeapState == null);
         boolean isYoungGC = (!isFirstGC && (currentHeapState.youngCount > lastHeapState.youngCount));
         boolean isOldGC = (!isFirstGC && (currentHeapState.oldCount > lastHeapState.oldCount));
+        boolean seenOldGC = (currentHeapState.oldCount > 0);
         boolean skippedYoungGCs = (!isFirstGC && (currentHeapState.youngCount > lastHeapState.youngCount + 1));
         long live = 0;
         long committed = 0;
@@ -109,9 +110,6 @@ public class MemoryManager
         double livePct;
 
         if (isFirstGC) {
-            // if we have not had an old GC then we will use the young GC heap sizes
-            // otherwise we will start with the state as of the last old GC
-            boolean seenOldGC = (currentHeapState.oldCount > 0);
             // count time up to the last young GC as mutator time
             gcPlus = currentHeapState.youngElapsed();
             totalPlus = end;
@@ -127,16 +125,19 @@ public class MemoryManager
             }
             commPct = 100D * committed / max;
             livePct = 100D * live / max;
-            tenured_committed_lo = committed;
+            // don't update lo water until we see an old gen GC
+            if (seenOldGC) {
+                tenured_committed_lo = committed;
+                tenured_live_lo = live;
+                tenured_committed_lo_pct = commPct;
+                tenured_live_lo_pct = livePct;
+            }
             tenured_committed_avge = committed;
             tenured_committed_hi = committed;
-            tenured_live_lo = live;
             tenured_live_avge = live;
             tenured_live_hi = live;
-            tenured_committed_lo_pct = commPct;
             tenured_committed_avge_pct = commPct;
             tenured_committed_hi_pct = commPct;
-            tenured_live_lo_pct = livePct;
             tenured_live_avge_pct = livePct;
             tenured_live_hi_pct = livePct;
         } else {
@@ -174,13 +175,16 @@ public class MemoryManager
                 tenured_committed_hi_pct = commPct;
 
             }
-            if (committed < tenured_committed_lo || tenured_committed_lo == 0) {
-                tenured_committed_lo = committed;
-                tenured_committed_lo_pct = commPct;
-            }
-            if (live < tenured_live_lo || tenured_live_lo == 0) {
-                tenured_live_lo = live;
-                tenured_live_lo_pct = livePct;
+            // don't update lo water until we have seen an old GC
+            if (seenOldGC) {
+                if (committed < tenured_committed_lo || tenured_committed_lo == 0) {
+                    tenured_committed_lo = committed;
+                    tenured_committed_lo_pct = commPct;
+                }
+                if (live < tenured_live_lo || tenured_live_lo == 0) {
+                    tenured_live_lo = live;
+                    tenured_live_lo_pct = livePct;
+                }
             }
             if (live > tenured_live_hi) {
                 tenured_live_hi = live;
