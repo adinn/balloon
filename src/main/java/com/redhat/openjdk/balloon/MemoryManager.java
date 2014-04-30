@@ -109,14 +109,22 @@ public class MemoryManager
         double livePct;
 
         if (isFirstGC) {
+            // if we have not had an old GC then we will use the young GC heap sizes
+            // otherwise we will start with the state as of the last old GC
+            boolean seenOldGC = (currentHeapState.oldCount > 0);
             // count time up to the last young GC as mutator time
             gcPlus = currentHeapState.youngElapsed();
             totalPlus = end;
             mutatorPlus = totalPlus - gcPlus;
-                // use initial committed to seed running average
-            max = currentHeapState.oldTenuredAfterMax / 1024;
-            committed =  currentHeapState.oldTenuredAfterCommitted / 1024;
-            live = currentHeapState.oldTenuredAfterSize / 1024;
+            if (seenOldGC) {
+                max = currentHeapState.oldTenuredAfterMax / 1024;
+                committed =  currentHeapState.oldTenuredAfterCommitted / 1024;
+                live = currentHeapState.oldTenuredAfterSize / 1024;
+            } else {
+                max = currentHeapState.youngTenuredAfterMax / 1024;
+                committed =  currentHeapState.youngTenuredAfterCommitted / 1024;
+                live = currentHeapState.youngTenuredAfterSize / 1024;
+            }
             commPct = 100D * committed / max;
             livePct = 100D * live / max;
             tenured_committed_lo = committed;
