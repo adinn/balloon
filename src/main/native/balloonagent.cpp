@@ -103,7 +103,7 @@ typedef struct {
   jbyteArray globalRef;
   void *rawRef;
   int offset;
-  long size;
+  jlong size;
 } BalloonType;
 
 // deque listing all registered balloons
