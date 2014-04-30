@@ -170,7 +170,7 @@ public class MemoryManager
                 tenured_committed_lo = committed;
                 tenured_committed_lo_pct = commPct;
             }
-            if (live < tenured_live_lo || tenured_live_lo < 0) {
+            if (live < tenured_live_lo || tenured_live_lo == 0) {
                 tenured_live_lo = live;
                 tenured_live_lo_pct = livePct;
             }
