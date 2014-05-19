@@ -56,14 +56,14 @@ public class MemoryManager
      * the GC in use and initalize the various monitoring statistics
      * which will be gathered as the application executes
      */
-    private final static boolean init(boolean useSysOut, boolean dumpAll)
+    private final static boolean init(int logPlacement, boolean dumpAll)
     {
         MemoryManager.dumpAll = dumpAll;
-        if (useSysOut) {
+        if (logPlacement == LOG_LOCATION_SYSOUT) {
             out = System.out;
         } else {
             // prepare to log data
-            out = openLog();
+            out = openLog(logPlacement);
             if (out == null) {
                 return false;
             }
@@ -443,11 +443,34 @@ public class MemoryManager
     private static long timestamp = - DUMP_INTERVAL_MIN;
 
     /**
+     * constant value passed into init call to request placement of log file in current working dir
+     *
+     * this value will be supplied by default
+     */
+    private static int LOG_LOCATION_LOCAL = 0;
+    /**
+     * constant value passed into init call to request logging to System.out
+     */
+    private static int LOG_LOCATION_SYSOUT = 1;
+    /**
+     * constant value passed into init call to request placement of log file in app-root/data dir
+     */
+    private static int LOG_LOCATION_APPROOT = 2;
+
+    /**
      * called during init to open the log file and write a header
      */
-    private static PrintStream openLog()
+    private static PrintStream openLog(int logPlacement)
     {
-        File file = new File(".balloonstats.log");
+        String filename;
+        if (logPlacement == LOG_LOCATION_APPROOT) {
+            filename = "app-root/data/.balloonstats.log";
+        } else if (logPlacement == LOG_LOCATION_LOCAL) {
+            filename = ".balloonstats.log";
+        } else {
+            return null;
+        }
+        File file = new File(filename);
         try {
             FileOutputStream fos = new FileOutputStream(file, true);
             PrintStream out = new PrintStream(fos, true);

@@ -53,15 +53,22 @@
  * optional args follow the = sign, are comma separated and include
  *  verbose -- write agent trace messages to stdout
  *  sysout -- write balloon stats to System.out
+ *  approot -- write balloon stats to ${CWD}/app-root/data/.balloonstats.log
  *  map -- enable not yet fully implemented function
  */
+
+// constants used to identify wher to log data
+
+#define LOG_LOCATION_LOCAL 0
+#define LOG_LOCATION_SYSOUT 1
+#define LOG_LOCATION_APPROOT 2
 
 // flag which enables or disables memory remapping
 static int do_balloon_mapping = 0;
 
 // flag which redirects output to System.out if set otherwise leaves it
 // going to the default log file (${CWD}/.balloonstats.log)
-static jvalue use_sysout = { 0 };
+static jvalue log_location = { LOG_LOCATION_LOCAL };
 
 // flag which requests dumping stats at every GC if set to true otherwise
 // stats are dumped at old gc so long as a minimum of DUMP_INTERVAL_MIN
@@ -236,7 +243,7 @@ agentThread(jvmtiEnv* jvmti, JNIEnv* jni, void *p)
     exitAgentMonitor(jvmti);
     if(event == GCEvent::Init) {
       stdout_message("Calling MemoryManager.init\n");
-      inited = jni->CallStaticBooleanMethod(theMemoryManager.MemoryManagerClass, theMemoryManager.init, use_sysout, dump_all);
+      inited = jni->CallStaticBooleanMethod(theMemoryManager.MemoryManagerClass, theMemoryManager.init, log_location, dump_all);
       failed = !inited;
     } else if (event == GCEvent::End  && inited) {
       interrupted = JNI_FALSE;
@@ -450,7 +457,7 @@ static void JNICALL vmInit(jvmtiEnv *jvmti, JNIEnv* jni, jthread thread) {
     jvm->DestroyJavaVM();
   }
   stdout_message("Loaded MemoryManagerClass: %p\n", theMemoryManager.MemoryManagerClass);
-  theMemoryManager.init = jni->GetStaticMethodID(theMemoryManager.MemoryManagerClass, "init", "(ZZ)Z");
+  theMemoryManager.init = jni->GetStaticMethodID(theMemoryManager.MemoryManagerClass, "init", "(IZ)Z");
   stdout_message("Loaded init: %p\n", theMemoryManager.init);
   theMemoryManager.gcEnd = jni->GetStaticMethodID(theMemoryManager.MemoryManagerClass, "gcEnd", "()V");
   stdout_message("Loaded gcEnd: %p\n", theMemoryManager.gcEnd);
@@ -576,7 +583,9 @@ void processAgentOptions(char *options)
     } else if (strncmp(curr, "verbose", len) == 0) {
       set_verbose();
     } else if (strncmp(curr, "sysout", len) == 0) {
-      use_sysout.z = 1;
+      log_location.i = LOG_LOCATION_SYSOUT;
+    } else if (strncmp(curr, "approot", len) == 0) {
+      log_location.i = LOG_LOCATION_APPROOT;
     } else if (strncmp(curr, "all", len) == 0) {
       dump_all.z = 1;
     } else {
