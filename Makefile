@@ -34,6 +34,8 @@ LD=g++
 # all produces the agent lib and a jar containing the agent Java classes and class Test
 all: $(TARGETDIR) $(TARGETDIR)/libballoon.so $(JAVA_TEST_CLASSES) $(TARGETDIR)/balloondriver-1.0.0.jar
 
+# all32 builds a 32 bit version as per all
+
 all32:: CFLAGS += -m32
 
 all32:: CXXFLAGS += -m32
@@ -45,6 +47,16 @@ all32: all
 # dist just produces the agent lib and a jar containing the agent Java classes without class Test
 
 dist: clean $(TARGETDIR) $(TARGETDIR)/libballoon.so $(TARGETDIR)/balloondriver-1.0.0.jar
+
+# dist32 builds a 32 bit version as per dist
+
+dist32:: CFLAGS += -m32
+
+dist32:: CXXFLAGS += -m32
+
+dist32:: LDFLAGS += -m32
+
+dist32:: dist
 
 clean:
 	rm -rf $(TARGETDIR)
