@@ -12,7 +12,7 @@ happened within the previous 20 seconds. Young GC stats will not be
 dumped unless 60 seconds have elapsed since the last old or young GC
 dump.
 
-Stats listed at each dump ar eas follows
+Stats listed at each dump are as follows
 
     GC Type (Old/Young) and timestamp
       last young GC count
@@ -102,10 +102,14 @@ or
 Available options and their meanings are
 
     sysout -- write stats to the JVM's System.out
+    approot -- locate .balloonstats.log in $CWD/app-root/data
     verbose -- print messages detailing operation of the native agent
     all -- dump stats at every GC
     map -- does not yet do anything
 
+n.b. approot is provided for use when the agent is deployed in an
+OpenShift application. $CWD (the home directory) is not normally
+writeable by deployed apps but $CWD/app-root/data /is/ writeable.
 
 Testing
 -------
