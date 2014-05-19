@@ -76,6 +76,7 @@ public class MemoryManager
         if (gcState == null) {
             return false;
         }
+        out.printf("GC Type: %s\n", gcState.getType());
         // set up the sample defaults
         for (int i = 0; i < RUNNING_SAMPLE_COUNT; i++) {
             live_running[i] = 0;

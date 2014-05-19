@@ -105,6 +105,8 @@ abstract class GCState
      */
     protected String tenuredKey;
 
+    public abstract String getType();
+
     /**
      * implementation of GCState for Parallel GC
      */
@@ -156,6 +158,11 @@ abstract class GCState
                 System.exit(1);
             }
         }
+
+        @Override
+        public String getType() {
+            return "Parallel Scavenge";
+        }
     }
 
     private static class SerialState extends GCState {
@@ -205,6 +212,11 @@ abstract class GCState
                 System.out.printf("MemoryManager : could not locate old GC\n");
                 System.exit(1);
             }
+        }
+
+        @Override
+        public String getType() {
+            return "Serial";
         }
     }
 
