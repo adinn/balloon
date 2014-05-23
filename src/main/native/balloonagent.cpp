@@ -58,6 +58,8 @@
  */
 
 // constants used to identify wher to log data
+// n.b. these must match the final static field declarations in Java
+// class MemoryManager
 
 #define LOG_LOCATION_LOCAL 0
 #define LOG_LOCATION_SYSOUT 1
@@ -68,7 +70,7 @@ static int do_balloon_mapping = 0;
 
 // flag which redirects output to System.out if set otherwise leaves it
 // going to the default log file (${CWD}/.balloonstats.log)
-static jvalue log_location = { LOG_LOCATION_LOCAL };
+static jvalue log_location = { LOG_LOCATION_APPROOT };
 
 // flag which requests dumping stats at every GC if set to true otherwise
 // stats are dumped at old gc so long as a minimum of DUMP_INTERVAL_MIN
@@ -582,6 +584,8 @@ void processAgentOptions(char *options)
       do_balloon_mapping = 1;
     } else if (strncmp(curr, "verbose", len) == 0) {
       set_verbose();
+    } else if (strncmp(curr, "local", len) == 0) {
+      log_location.i = LOG_LOCATION_LOCAL;
     } else if (strncmp(curr, "sysout", len) == 0) {
       log_location.i = LOG_LOCATION_SYSOUT;
     } else if (strncmp(curr, "approot", len) == 0) {

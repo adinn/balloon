@@ -2,8 +2,9 @@ A Java native agent used to regularly dump stats on memory use in Java
 applications. This agent maintains various running statistics on
 operaton of the GC in any Java application it is loaded into.
 
-By default stats are appended to file .balloonstats.log. but thye can
-also be redirected to System.out.
+By default stats are appended to file $CWD/app-root/data/.balloonstats.log
+(on the assumption that this directory already exists) but they can also
+be appended to file redirected $CWD/.balloonstats.log or to System.out.
 
 Stats will normally be dumped at each GC but the agent imposes certain
 limits on dump frequency to ensure they do not occur too frequently or
@@ -61,6 +62,12 @@ used to churn over memory execute
     make clean
     make all
 
+A 32-bit version of the shared library can be built using either of
+the following targets
+
+    make dist32
+    make all32
+
 Using
 -----
 
@@ -80,7 +87,7 @@ argument
            . . .
 
 The agent will write memory management summary stats to file
-.balloonstats.log in the current working directory.
+app-root/data/.balloonstats.log in the current working directory.
 
 Configuring
 -----------
@@ -101,15 +108,17 @@ or
 
 Available options and their meanings are
 
+    approot -- append output to file $CWD/app-root/data/.balloonstats.log
+    local -- append output to file $CWD/.balloonstats.log
     sysout -- write stats to the JVM's System.out
-    approot -- locate .balloonstats.log in $CWD/app-root/data
     verbose -- print messages detailing operation of the native agent
     all -- dump stats at every GC
     map -- does not yet do anything
 
-n.b. approot is provided for use when the agent is deployed in an
-OpenShift application. $CWD (the home directory) is not normally
-writeable by deployed apps but $CWD/app-root/data /is/ writeable.
+n.b. approot is the default ouptut selection and is provided for use when
+the agent is deployed in an OpenShift application. In Openshift $CWD, the
+home directory, is not normally writeable by deployed apps but
+$CWD/app-root/data *is* writeable.
 
 Testing
 -------
