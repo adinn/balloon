@@ -96,6 +96,8 @@ public class MemoryManager
         currentHeapState = new HeapState(gcState);
         long end = currentHeapState.end();
         long lastEnd;
+        long youngPlus;
+        long oldPlus;
         long gcPlus;
         long mutatorPlus;
         long totalPlus;
@@ -112,7 +114,9 @@ public class MemoryManager
 
         if (isFirstGC) {
             // count time up to the last young GC as mutator time
-            gcPlus = currentHeapState.youngElapsed();
+            youngPlus = currentHeapState.youngElapsed();
+            oldPlus = 0;
+            gcPlus = youngPlus;
             totalPlus = end;
             mutatorPlus = totalPlus - gcPlus;
             if (seenOldGC) {
@@ -145,10 +149,13 @@ public class MemoryManager
             lastEnd = lastHeapState.end();
             // use the latest end time to mark the time interval between last and current
             // we always count a young gc change
-            gcPlus = currentHeapState.youngElapsed();
+            youngPlus = currentHeapState.youngElapsed();
+            gcPlus = youngPlus;
+            oldPlus = 0;
             if (isOldGC) {
                 // count the gc time for the old gc
-                gcPlus += currentHeapState.oldElapsed();
+                oldPlus = currentHeapState.oldElapsed();
+                gcPlus += oldPlus;
             }
             // see if we missed any young GCs
             if (skippedYoungGCs) {
@@ -239,6 +246,8 @@ public class MemoryManager
         // ok, we can update the time counters now we don't need the old values
 
         mutatormsecs += mutatorPlus;
+        youngmsecs += youngPlus;
+        oldmsecs += oldPlus;
         gcmsecs += gcPlus;
         totalmsecs += totalPlus;
 
@@ -252,6 +261,8 @@ public class MemoryManager
             currentHeapState.dump(out);
             out.printf("  mutator secs: %9.4f               ", 1.0D * mutatormsecs/1000.0D);
             out.printf("gc secs:      %9.4f\n", 1.0D * gcmsecs/1000.0D);
+            out.printf("    young secs: %9.4f               ", 1.0D * youngmsecs/1000.0D);
+            out.printf("old secs:     %9.4f\n", 1.0D * oldmsecs/1000.0D);
             out.printf("  live:         %9d               ", live);
             out.printf("committed:    %9d\n", committed);
             out.printf(  "  live hi:      %9d (%7.4f%%)    ", (long)tenured_live_hi, tenured_live_hi_pct);
@@ -300,6 +311,16 @@ public class MemoryManager
      * heap stats for the previous most recently recorded GC
      */
     private static HeapState lastHeapState = null;
+
+    /**
+     * the total time spent in young GC in millisecs
+     */
+    private static long youngmsecs;
+
+    /**
+     * the total time spent in old GC in millisecs
+     */
+    private static long oldmsecs;
 
     /**
      * the total time spent in GC in millisecs

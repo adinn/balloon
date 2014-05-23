@@ -360,7 +360,7 @@ class HeapState
         builder.append(count);
         builder.append('\n');
         builder.append(tag2);
-        builder.append(1.0D * msecs/1000.0D);
+        builder.append(msecs);
         builder.append('\n');
     }
     void dumpUsage(StringBuilder builder, String tag, long beforeSize, long beforeCommitted, long beforeMax, long afterSize, long afterCommitted, long afterMax)
